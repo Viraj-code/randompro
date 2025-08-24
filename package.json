@@ -1,0 +1,28 @@
+{
+    "name": "ai-video-generator",
+    "version": "1.0.0",
+    "description": "AI Video Generation App using HeyGen API",
+    "main": "api/generate-video.js",
+    "scripts": {
+      "dev": "vercel dev",
+      "build": "echo 'No build step required'",
+      "start": "vercel dev"
+    },
+    "dependencies": {
+      "axios": "^1.6.0",
+      "cors": "^2.8.5",
+      "dotenv": "^16.3.1"
+    },
+    "engines": {
+      "node": ">=18"
+    },
+    "keywords": [
+      "ai",
+      "video",
+      "generation",
+      "heygen",
+      "vercel"
+    ],
+    "author": "Your Name",
+    "license": "MIT"
+  }

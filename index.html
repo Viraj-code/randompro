@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Video Generator - HeyGen Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .prompt-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        .prompt-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .char-counter {
+            text-align: right;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .video-section {
+            display: none;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .video-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .video-player {
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .video-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .video-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .video-info p {
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .reset-btn {
+            margin-top: 20px;
+            padding: 10px 30px;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            background: #545b62;
+        }
+
+        .examples {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .examples h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .example-prompts {
+            display: grid;
+            gap: 10px;
+        }
+
+        .example-prompt {
+            padding: 10px;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .example-prompt:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 AI Video Generator</h1>
+            <p>Transform your ideas into engaging videos using HeyGen AI</p>
+        </div>
+
+        <div class="input-section">
+            <div class="input-group">
+                <label for="promptInput">Enter your video prompt:</label>
+                <textarea 
+                    id="promptInput" 
+                    class="prompt-input"
+                    placeholder="Describe what you want to create... For example: 'Explain the benefits of renewable energy in simple terms' or 'Welcome viewers to our new product launch'"
+                    maxlength="1000"
+                ></textarea>
+                <div class="char-counter">
+                    <span id="charCount">0</span>/1000 characters
+                </div>
+            </div>
+
+            <button id="generateBtn" class="generate-btn">
+                🎬 Generate Video
+            </button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <div id="loadingMessage">Generating your video...</div>
+        </div>
+
+        <div id="statusMessage" class="status-message" style="display: none;"></div>
+
+        <div id="videoSection" class="video-section">
+            <h2>Your Generated Video</h2>
+            <div class="video-container">
+                <video id="videoPlayer" class="video-player" controls>
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-info">
+                    <h3>Video Details</h3>
+                    <p><strong>Original Prompt:</strong> <span id="originalPrompt"></span></p>
+                    <p><strong>Enhanced Prompt:</strong> <span id="enhancedPrompt"></span></p>
+                    <p><strong>Generated:</strong> <span id="generatedTime"></span></p>
+                    <p><strong>Generation ID:</strong> <span id="generationId"></span></p>
+                </div>
+                <button id="resetBtn" class="reset-btn">Generate Another Video</button>
+            </div>
+        </div>
+
+        <div class="examples">
+            <h3>💡 Example Prompts</h3>
+            <div class="example-prompts">
+                <div class="example-prompt" onclick="setPrompt('Welcome to our company! We are excited to introduce our innovative solutions that help businesses grow and succeed in today\'s digital world.')">
+                    🏢 Company Welcome Message
+                </div>
+                <div class="example-prompt" onclick="setPrompt('Explain the importance of cybersecurity in simple terms, covering basic protection measures everyone should know.')">
+                    🔒 Cybersecurity Explanation
+                </div>
+                <div class="example-prompt" onclick="setPrompt('Introduce the benefits of our new fitness app, highlighting features like personalized workouts and progress tracking.')">
+                    💪 Fitness App Introduction
+                </div>
+                <div class="example-prompt" onclick="setPrompt('Describe how artificial intelligence is transforming healthcare, making it more efficient and accessible for everyone.')">
+                    🤖 AI in Healthcare
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const promptInput = document.getElementById('promptInput');
+        const generateBtn = document.getElementById('generateBtn');
+        const loading = document.getElementById('loading');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const statusMessage = document.getElementById('statusMessage');
+        const videoSection = document.getElementById('videoSection');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const charCount = document.getElementById('charCount');
+        const resetBtn = document.getElementById('resetBtn');
+
+        // Video info elements
+        const originalPromptSpan = document.getElementById('originalPrompt');
+        const enhancedPromptSpan = document.getElementById('enhancedPrompt');
+        const generatedTimeSpan = document.getElementById('generatedTime');
+        const generationIdSpan = document.getElementById('generationId');
+
+        let currentGenerationId = null;
+        let statusCheckInterval = null;
+
+        // Character counter
+        promptInput.addEventListener('input', () => {
+            const count = promptInput.value.length;
+            charCount.textContent = count;
+            
+            if (count > 800) {
+                charCount.style.color = '#dc3545';
+            } else if (count > 600) {
+                charCount.style.color = '#ffc107';
+            } else {
+                charCount.style.color = '#666';
+            }
+        });
+
+        // Set example prompt
+        function setPrompt(prompt) {
+            promptInput.value = prompt;
+            promptInput.dispatchEvent(new Event('input'));
+            promptInput.focus();
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            statusMessage.textContent = message;
+            statusMessage.className = `status-message status-${type}`;
+            statusMessage.style.display = 'block';
+        }
+
+        // Hide status message
+        function hideStatus() {
+            statusMessage.style.display = 'none';
+        }
+
+        // Show loading
+        function showLoading(message = 'Generating your video...') {
+            loading.style.display = 'block';
+            loadingMessage.textContent = message;
+            generateBtn.disabled = true;
+        }
+
+        // Hide loading
+        function hideLoading() {
+            loading.style.display = 'none';
+            generateBtn.disabled = false;
+        }
+
+        // Check video generation status
+        async function checkStatus(generationId) {
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'check_status',
+                        generation_id: generationId
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Status check failed');
+                }
+
+                return result;
+            } catch (error) {
+                console.error('Status check error:', error);
+                throw error;
+            }
+        }
+
+        // Generate video
+        async function generateVideo() {
+            const prompt = promptInput.value.trim();
+            
+            if (!prompt) {
+                showStatus('Please enter a prompt to generate a video.', 'error');
+                return;
+            }
+
+            if (prompt.length > 1000) {
+                showStatus('Prompt is too long. Please keep it under 1000 characters.', 'error');
+                return;
+            }
+
+            hideStatus();
+            showLoading('Starting video generation...');
+            videoSection.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/generate-video', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ prompt })
+                });
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Video generation failed');
+                }
+
+                currentGenerationId = result.generation_id;
+
+                // If video is already completed (mock response)
+                if (result.status === 'completed' && result.video_url) {
+                    hideLoading();
+                    displayVideo(result);
+                    return;
+                }
+
+                // Start polling for status updates
+                showLoading('Processing your video... This may take a few minutes.');
+                startStatusPolling(result.generation_id);
+
+            } catch (error) {
+                hideLoading();
+                showStatus(`Error: ${error.message}`, 'error');
+                console.error('Generation error:', error);
+            }
+        }
+
+        // Start polling for video status
+        function startStatusPolling(generationId) {
+            let attempts = 0;
+            const maxAttempts = 60; // 10 minutes max (60 * 10 seconds)
+
+            statusCheckInterval = setInterval(async () => {
+                attempts++;
+
+                try {
+                    const result = await checkStatus(generationId);
+
+                    if (result.status === 'completed' && result.video_url) {
+                        clearInterval(statusCheckInterval);
+                        hideLoading();
+                        displayVideo(result);
+                        showStatus('Video generated successfully!', 'success');
+                    } else if (result.status === 'failed') {
+                        clearInterval(statusCheckInterval);
+                        hideLoading();
+                        showStatus('Video generation failed. Please try again.', 'error');
+                    } else if (attempts >= maxAttempts) {
+                        clearInterval(statusCheckInterval);
+                        hideLoading();
+                        showStatus('Video generation timed out. Please try again.', 'error');
+                    } else {
+                        // Still processing
+                        showLoading(`Processing video... (${attempts}/${maxAttempts})`);
+                    }
+                } catch (error) {
+                    attempts++; // Count errors as attempts
+                    console.error('Status polling error:', error);
+                    
+                    if (attempts >= 3) { // Stop after 3 consecutive errors
+                        clearInterval(statusCheckInterval);
+                        hideLoading();
+                        showStatus('Unable to check video status. Please try again.', 'error');
+                    }
+                }
+            }, 10000); // Check every 10 seconds
+        }
+
+        // Display generated video
+        function displayVideo(result) {
+            videoPlayer.src = result.video_url;
+            originalPromptSpan.textContent = result.original_prompt || 'N/A';
+            enhancedPromptSpan.textContent = result.enhanced_prompt || 'N/A';
+            generatedTimeSpan.textContent = result.timestamp || new Date().toLocaleString();
+            generationIdSpan.textContent = result.generation_id || 'N/A';
+            
+            videoSection.style.display = 'block';
+            videoSection.scrollIntoView({ behavior: 'smooth' });
+
+            // Add mock badge if it's a demo video
+            if (result.mock) {
+                showStatus('Demo video displayed - HeyGen API integration ready for production', 'info');
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            promptInput.value = '';
+            charCount.textContent = '0';
+            videoSection.style.display = 'none';
+            hideStatus();
+            hideLoading();
+            
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+                statusCheckInterval = null;
+            }
+            
+            currentGenerationId = null;
+            promptInput.focus();
+        }
+
+        // Event listeners
+        generateBtn.addEventListener('click', generateVideo);
+        resetBtn.addEventListener('click', resetForm);
+
+        // Enter key to generate (Ctrl+Enter or Cmd+Enter)
+        promptInput.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                generateVideo();
+            }
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (statusCheckInterval) {
+                clearInterval(statusCheckInterval);
+            }
+        });
+
+        // Focus prompt input on load
+        window.addEventListener('load', () => {
+            promptInput.focus();
+        });
+    </script>
+</body>
+</html>
